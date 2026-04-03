@@ -46,7 +46,12 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">{{ page.title }}</h1>
+          <h1 class="title is-1 publication-title">{% assign parts = page.title | split: ':' %}<span class="ptc-brand">{{ parts[0] }}</span>:{{ parts[1] }}</h1>
+          {% if page.venue %}
+          <div class="is-size-4 publication-venue" style="margin: 0 auto 12px;">
+            <span>{{ page.venue }}</span>
+          </div>
+          {% endif %}
           {% if page.authors %}
           <div class="is-size-5 publication-authors">
             <span class="author-block">
@@ -61,6 +66,7 @@
               {{ page.affiliations }}
             </span>
           </div>
+          <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">*Corresponding author</div>
           {% endif %}
 
           <div class="column has-text-centered">
@@ -69,7 +75,7 @@
               {% if page.paper %}
               <span class="link-block">
                 <a href="{{ page.paper }}"
-                   class="external-link button is-normal is-rounded is-dark">
+                   class="external-link button is-normal is-dark">
                   <span class="icon">
                       <i class="fas fa-file-pdf"></i>
                   </span>
@@ -81,7 +87,7 @@
               {% if page.video %}
               <span class="link-block">
                 <a href="{{ page.video }}"
-                   class="external-link button is-normal is-rounded is-dark">
+                   class="external-link button is-normal is-dark">
                   <span class="icon">
                       <i class="fab fa-youtube"></i>
                   </span>
@@ -93,7 +99,7 @@
               {% if page.code %}
               <span class="link-block">
                 <a href="{{ page.code }}"
-                   class="external-link button is-normal is-rounded is-dark">
+                   class="external-link button is-normal is-dark">
                   <span class="icon">
                       <i class="fab fa-github"></i>
                   </span>
@@ -105,7 +111,7 @@
               {% if page.data %}
               <span class="link-block">
                 <a href="{{ page.data }}"
-                   class="external-link button is-normal is-rounded is-dark">
+                   class="external-link button is-normal is-dark">
                   <span class="icon">
                       <i class="fas fa-database"></i>
                   </span>
@@ -121,15 +127,30 @@
   </div>
 </section>
 
-<section class="section">
-<div class="container is-max-desktop">
-
-<div class="content">
-  {{ content }}
+{% if page.main_figure %}
+<div class="container is-max-desktop" style="padding: 0 1.5rem;">
+  <img src="{{ page.main_figure }}" alt="Main Figure" style="width: 100%; height: auto; display: block;">
 </div>
+{% endif %}
 
+<section class="section" style="padding-top: 1.5rem;">
+<div class="container" style="max-width: 960px; padding: 0 1.5rem;">
+  <div class="content" id="main-content">
+    {{ content }}
+  </div>
 </div>
 </section>
+
+<script>
+// compare3 섹션을 content 바깥, main_figure와 같은 레벨로 이동
+document.addEventListener('DOMContentLoaded', function() {
+  var c = document.querySelector('.compare3');
+  if (c) {
+    var section = document.querySelector('section.section');
+    section.parentNode.insertBefore(c, section);
+  }
+});
+</script>
 
 <footer class="footer">
   <div class="container">

@@ -363,7 +363,7 @@ body {
   align-items: center;
   justify-content: center;
   --swiper-navigation-size: 18px;
-  top: calc(50% - 20px);
+  top: 50%;
 }
 
 .depth-baseline-switcher {

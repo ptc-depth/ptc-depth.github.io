@@ -37,7 +37,7 @@ code: https://github.com/ajou-arrl/ptc-depth
         <div class="compare3-container" data-src="./static/video/ms2_day_merged.webm" data-panels="3">
           <div class="video-loading"><div class="video-loading-spinner"></div></div>
           <div class="compare3-scene-label">MS2 Dataset - Daytime</div>
-          <video class="compare3-src" muted playsinline preload="auto" src="./static/video/ms2_day_merged.webm" style="display:none;"></video>
+          <video class="compare3-src" muted playsinline preload="none" src="./static/video/ms2_day_merged.webm" style="display:none;"></video>
           <canvas class="compare3-canvas"></canvas>
           <div class="compare3-label compare3-label-0">NIR</div>
           <div class="compare3-label compare3-label-1">RGB</div>
@@ -57,7 +57,7 @@ code: https://github.com/ajou-arrl/ptc-depth
         <div class="compare3-container" data-src="./static/video/ms2_night_merged.webm" data-panels="3">
           <div class="video-loading"><div class="video-loading-spinner"></div></div>
           <div class="compare3-scene-label">MS2 Dataset - Nighttime</div>
-          <video class="compare3-src" muted playsinline preload="auto" src="./static/video/ms2_night_merged.webm" style="display:none;"></video>
+          <video class="compare3-src" muted playsinline preload="none" src="./static/video/ms2_night_merged.webm" style="display:none;"></video>
           <canvas class="compare3-canvas"></canvas>
           <div class="compare3-label compare3-label-0">NIR</div>
           <div class="compare3-label compare3-label-1">RGB</div>
@@ -83,18 +83,28 @@ code: https://github.com/ajou-arrl/ptc-depth
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Prefetch all videos in background
-  var videoUrls = [];
-  document.querySelectorAll('video[src]').forEach(function(v) { videoUrls.push(v.src); });
-  document.querySelectorAll('video[data-uni]').forEach(function(v) {
-    if (v.dataset.uni) videoUrls.push(v.dataset.uni);
-    if (v.dataset.vda) videoUrls.push(v.dataset.vda);
+  // Sequential prefetch: load videos one by one, active slides first
+  var prefetchQueue = [];
+  // Active slide videos first (wheel_merged, roadside_ours_uni)
+  document.querySelectorAll('.swiper-slide-active video').forEach(function(v) {
+    if (v.src) prefetchQueue.push(v.src);
+  });
+  // Then remaining videos
+  document.querySelectorAll('video').forEach(function(v) {
+    if (v.src && prefetchQueue.indexOf(v.src) === -1) prefetchQueue.push(v.src);
+  });
+  // Then alternate sources (vda, lidar)
+  document.querySelectorAll('video[data-vda]').forEach(function(v) {
+    if (v.dataset.vda && prefetchQueue.indexOf(v.dataset.vda) === -1) prefetchQueue.push(v.dataset.vda);
   });
   document.querySelectorAll('.compare3-toggle-input').forEach(function(t) {
-    if (t.dataset.lidar) videoUrls.push(t.dataset.lidar);
+    if (t.dataset.lidar && prefetchQueue.indexOf(t.dataset.lidar) === -1) prefetchQueue.push(t.dataset.lidar);
   });
-  var unique = videoUrls.filter(function(v, i, a) { return a.indexOf(v) === i; });
-  unique.forEach(function(url) { fetch(url, { priority: 'low' }).catch(function(){}); });
+  function prefetchNext(i) {
+    if (i >= prefetchQueue.length) return;
+    fetch(prefetchQueue[i]).then(function() { prefetchNext(i + 1); }).catch(function() { prefetchNext(i + 1); });
+  }
+  prefetchNext(0);
 
   // Hide loading spinners when videos are ready
   document.querySelectorAll('video').forEach(function(v) {
@@ -419,12 +429,12 @@ Given consecutive monocular frames and a scalar displacement (from wheel odometr
       <div class="swiper-slide">
         <div class="depth-stack-scene">Wheel Dataset — Forest</div>
         <div class="video-loading"><div class="video-loading-spinner"></div></div>
-        <video class="depth-vid" muted playsinline preload="auto" src="./static/video/forest_ours_uni.webm" data-uni="./static/video/forest_ours_uni.webm" data-vda="./static/video/forest_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
+        <video class="depth-vid" muted playsinline preload="none" src="./static/video/forest_ours_uni.webm" data-uni="./static/video/forest_ours_uni.webm" data-vda="./static/video/forest_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
       </div>
       <div class="swiper-slide">
         <div class="depth-stack-scene">KITTI</div>
         <div class="video-loading"><div class="video-loading-spinner"></div></div>
-        <video class="depth-vid" muted playsinline preload="auto" src="./static/video/kitti_ours_uni.webm" data-uni="./static/video/kitti_ours_uni.webm" data-vda="./static/video/kitti_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
+        <video class="depth-vid" muted playsinline preload="none" src="./static/video/kitti_ours_uni.webm" data-uni="./static/video/kitti_ours_uni.webm" data-vda="./static/video/kitti_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
       </div>
     </div>
     <div class="swiper-button-prev"></div>

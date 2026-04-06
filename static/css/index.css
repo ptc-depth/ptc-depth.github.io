@@ -309,12 +309,18 @@ body {
   padding-bottom: 40px;
 }
 
+.depth-comparison-swiper .swiper-pagination {
+  position: relative;
+  bottom: auto;
+  margin-top: 12px;
+}
+
 .depth-comparison-swiper .swiper-pagination-bullet {
   background: #aaa;
 }
 
 .depth-comparison-swiper .swiper-pagination-bullet-active {
-  background: #22ceb1;
+  background: #363636;
 }
 
 .depth-vid {
@@ -328,10 +334,10 @@ body {
 .depth-comparison-swiper .swiper-slide::after {
   content: '';
   position: absolute;
-  top: 28px;
+  top: 0;
   left: 50%;
   width: 2px;
-  height: calc(100% - 78px);
+  height: 100%;
   background: rgba(255, 255, 255, 0.4);
   transform: translateX(-50%);
   pointer-events: none;
@@ -340,7 +346,16 @@ body {
 
 .depth-comparison-swiper .swiper-button-prev,
 .depth-comparison-swiper .swiper-button-next {
-  color: #363636;
+  color: #fff;
+  background: rgba(0,0,0,0.45);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --swiper-navigation-size: 18px;
+  top: calc(50% - 20px);
 }
 
 .depth-baseline-switcher {
@@ -401,7 +416,16 @@ body {
 
 .compare3-swiper .swiper-button-prev,
 .compare3-swiper .swiper-button-next {
-  color: #363636;
+  color: #fff;
+  background: rgba(0,0,0,0.45);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --swiper-navigation-size: 18px;
+  top: calc(50% - 20px);
 }
 
 .compare3-swiper .swiper-pagination-bullet-active {
@@ -550,4 +574,27 @@ body {
   font-weight: 600;
   z-index: 5;
   pointer-events: none;
+}
+
+/* ── Video Loading Spinner ── */
+.video-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-radius: 8px;
+  z-index: 20;
+}
+.video-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

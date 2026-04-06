@@ -22,6 +22,7 @@ code: https://github.com/ajou-arrl/ptc-depth
     <div class="swiper-wrapper">
       <div class="swiper-slide">
         <div class="compare3-container" data-src="./static/video/wheel_merged.webm" data-panels="3">
+          <div class="video-loading"><div class="video-loading-spinner"></div></div>
           <div class="compare3-scene-label">Wheel Dataset - Roadside</div>
           <video class="compare3-src" muted playsinline autoplay src="./static/video/wheel_merged.webm" style="display:none;"></video>
           <canvas class="compare3-canvas"></canvas>
@@ -34,6 +35,7 @@ code: https://github.com/ajou-arrl/ptc-depth
       </div>
       <div class="swiper-slide">
         <div class="compare3-container" data-src="./static/video/ms2_day_merged.webm" data-panels="3">
+          <div class="video-loading"><div class="video-loading-spinner"></div></div>
           <div class="compare3-scene-label">MS2 Dataset - Daytime</div>
           <video class="compare3-src" muted playsinline preload="auto" src="./static/video/ms2_day_merged.webm" style="display:none;"></video>
           <canvas class="compare3-canvas"></canvas>
@@ -53,6 +55,7 @@ code: https://github.com/ajou-arrl/ptc-depth
       </div>
       <div class="swiper-slide">
         <div class="compare3-container" data-src="./static/video/ms2_night_merged.webm" data-panels="3">
+          <div class="video-loading"><div class="video-loading-spinner"></div></div>
           <div class="compare3-scene-label">MS2 Dataset - Nighttime</div>
           <video class="compare3-src" muted playsinline preload="auto" src="./static/video/ms2_night_merged.webm" style="display:none;"></video>
           <canvas class="compare3-canvas"></canvas>
@@ -80,19 +83,45 @@ code: https://github.com/ajou-arrl/ptc-depth
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Hide loading spinners when videos are ready
+  document.querySelectorAll('video').forEach(function(v) {
+    function hideSpinner() {
+      var parent = v.closest('.compare3-container') || v.closest('.swiper-slide');
+      if (parent) {
+        var loader = parent.querySelector('.video-loading');
+        if (loader) loader.remove();
+      }
+    }
+    if (v.readyState >= 3) hideSpinner();
+    else v.addEventListener('canplay', hideSpinner, { once: true });
+  });
+
   var swiper = new Swiper('.compare3-swiper', {
     slidesPerView: 1,
     spaceBetween: 0,
     loop: false,
     allowTouchMove: false,
     pagination: { el: '.swiper-pagination', clickable: true },
-    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
     on: {
       slideChangeTransitionEnd: function() {
-        document.querySelectorAll('.swiper-slide').forEach(function(slide) {
+        document.querySelectorAll('.compare3-swiper .swiper-slide').forEach(function(slide) {
           var isActive = slide.classList.contains('swiper-slide-active');
           var v = slide.querySelector('.compare3-src');
-          if (v) { isActive ? v.play().catch(function(){}) : v.pause(); }
+          if (v) {
+            if (isActive) {
+              v.play().catch(function(){});
+              var ldr = slide.querySelector('.video-loading');
+              if (ldr) {
+                v.addEventListener('canplay', function onReady() {
+                  v.removeEventListener('canplay', onReady);
+                  ldr.remove();
+                });
+                if (v.readyState >= 3) ldr.remove();
+              }
+            } else {
+              v.pause();
+            }
+          }
         });
       }
     }
@@ -102,18 +131,28 @@ document.addEventListener('DOMContentLoaded', function() {
   var firstVid = document.querySelector('.compare3-swiper .swiper-slide-active .compare3-src');
   if (firstVid) firstVid.play().catch(function(){});
 
-  // 영상 한 번 재생 완료 시 다음 슬라이드로 자동 전환
-  document.querySelectorAll('.compare3-src').forEach(function(v) {
-    v.addEventListener('ended', function() {
-      var totalSlides = swiper.slides.length;
-      if (swiper.activeIndex < totalSlides - 1) {
-        swiper.slideNext();
-      } else {
-        // 마지막 슬라이드면 처음으로 돌아가고 재생
-        swiper.slideTo(0);
-      }
-    });
+  // 화살표 루프: 직접 제어 (Swiper navigation 비활성, race condition 방지)
+  document.querySelector('.compare3-swiper .swiper-button-next').addEventListener('click', function() {
+    if (swiper.isEnd) swiper.slideTo(0);
+    else swiper.slideNext();
   });
+  document.querySelector('.compare3-swiper .swiper-button-prev').addEventListener('click', function() {
+    if (swiper.isBeginning) swiper.slideTo(swiper.slides.length - 1);
+    else swiper.slidePrev();
+  });
+
+  // 영상 한 번 재생 완료 시 다음 슬라이드로 자동 전환
+  function bindCompare3Ended() {
+    var active = document.querySelector('.compare3-swiper .swiper-slide-active .compare3-src');
+    if (active) {
+      active.onended = function() {
+        if (swiper.isEnd) swiper.slideTo(0);
+        else swiper.slideNext();
+      };
+    }
+  }
+  bindCompare3Ended();
+  swiper.on('slideChangeTransitionEnd', bindCompare3Ended);
 
   document.querySelectorAll('.compare3-container').forEach(function(container) {
     var video = container.querySelector('.compare3-src');
@@ -215,8 +254,21 @@ document.addEventListener('DOMContentLoaded', function() {
         var newSrc = toggle.checked ? toggle.dataset.lidar : toggle.dataset.normal;
         var currentTime = video.currentTime;
         var wasPlaying = !video.paused;
+        // Show spinner during load
+        var existing = container.querySelector('.video-loading');
+        if (!existing) {
+          var loader = document.createElement('div');
+          loader.className = 'video-loading';
+          loader.innerHTML = '<div class="video-loading-spinner"></div>';
+          container.appendChild(loader);
+        }
         video.src = newSrc;
         video.load();
+        video.addEventListener('canplay', function onReady() {
+          video.removeEventListener('canplay', onReady);
+          var ldr = container.querySelector('.video-loading');
+          if (ldr) ldr.remove();
+        });
         video.addEventListener('loadedmetadata', function onLoad() {
           video.removeEventListener('loadedmetadata', onLoad);
           panelW = video.videoWidth / 3;
@@ -347,15 +399,18 @@ Given consecutive monocular frames and a scalar displacement (from wheel odometr
     <div class="swiper-wrapper">
       <div class="swiper-slide">
         <div class="depth-stack-scene">Wheel Dataset — Roadside (Thermal)</div>
-        <video class="depth-vid" muted playsinline autoplay src="./static/video/roadside_ours_uni.webm" data-uni="./static/video/roadside_ours_uni.webm" data-vda="./static/video/roadside_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
+        <div class="video-loading"><div class="video-loading-spinner"></div></div>
+        <video class="depth-vid" muted playsinline autoplay preload="auto" src="./static/video/roadside_ours_uni.webm" data-uni="./static/video/roadside_ours_uni.webm" data-vda="./static/video/roadside_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
       </div>
       <div class="swiper-slide">
         <div class="depth-stack-scene">Wheel Dataset — Forest</div>
-        <video class="depth-vid" muted playsinline src="./static/video/forest_ours_uni.webm" data-uni="./static/video/forest_ours_uni.webm" data-vda="./static/video/forest_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
+        <div class="video-loading"><div class="video-loading-spinner"></div></div>
+        <video class="depth-vid" muted playsinline preload="auto" src="./static/video/forest_ours_uni.webm" data-uni="./static/video/forest_ours_uni.webm" data-vda="./static/video/forest_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
       </div>
       <div class="swiper-slide">
         <div class="depth-stack-scene">KITTI</div>
-        <video class="depth-vid" muted playsinline src="./static/video/kitti_ours_uni.webm" data-uni="./static/video/kitti_ours_uni.webm" data-vda="./static/video/kitti_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
+        <div class="video-loading"><div class="video-loading-spinner"></div></div>
+        <video class="depth-vid" muted playsinline preload="auto" src="./static/video/kitti_ours_uni.webm" data-uni="./static/video/kitti_ours_uni.webm" data-vda="./static/video/kitti_ours_vda.webm" style="width: 100%; border-radius: 8px; display: block;"></video>
       </div>
     </div>
     <div class="swiper-button-prev"></div>
@@ -380,33 +435,57 @@ document.addEventListener('DOMContentLoaded', function() {
     loop: false,
     allowTouchMove: false,
     pagination: { el: '.depth-comparison-swiper .swiper-pagination', clickable: true },
-    navigation: { nextEl: '.depth-comparison-swiper .swiper-button-next', prevEl: '.depth-comparison-swiper .swiper-button-prev' },
     on: {
       slideChangeTransitionEnd: function() {
         document.querySelectorAll('.depth-comparison-swiper .swiper-slide').forEach(function(slide) {
           var isActive = slide.classList.contains('swiper-slide-active');
           var v = slide.querySelector('.depth-vid');
           if (v) {
-            if (isActive) { v.currentTime = 0; v.play().catch(function(){}); }
-            else { v.pause(); }
+            if (isActive) {
+              if (v.readyState < 2) {
+                v.load();
+              }
+              v.currentTime = 0;
+              v.play().catch(function(){});
+              var ldr = slide.querySelector('.video-loading');
+              if (ldr) {
+                v.addEventListener('canplay', function onReady() {
+                  v.removeEventListener('canplay', onReady);
+                  ldr.remove();
+                });
+                if (v.readyState >= 3) ldr.remove();
+              }
+            } else {
+              v.pause();
+            }
           }
         });
       }
     }
   });
 
-  // Auto-advance: cycle through slides, then switch baseline and repeat
-  document.querySelectorAll('.depth-vid').forEach(function(v) {
-    v.addEventListener('ended', function() {
-      if (depthSwiper.activeIndex < depthSwiper.slides.length - 1) {
-        depthSwiper.slideNext();
-      } else {
-        // End of cycle: switch baseline then restart
-        switchBaseline(1);
-        depthSwiper.slideTo(0);
-      }
-    });
+  // 화살표 루프: 직접 제어
+  document.querySelector('.depth-comparison-swiper .swiper-button-next').addEventListener('click', function() {
+    if (depthSwiper.isEnd) depthSwiper.slideTo(0);
+    else depthSwiper.slideNext();
   });
+  document.querySelector('.depth-comparison-swiper .swiper-button-prev').addEventListener('click', function() {
+    if (depthSwiper.isBeginning) depthSwiper.slideTo(depthSwiper.slides.length - 1);
+    else depthSwiper.slidePrev();
+  });
+
+  // Auto-advance: cycle through slides, then switch baseline and repeat
+  function bindDepthEnded() {
+    var active = document.querySelector('.depth-comparison-swiper .swiper-slide-active .depth-vid');
+    if (active) {
+      active.onended = function() {
+        if (depthSwiper.isEnd) depthSwiper.slideTo(0);
+        else depthSwiper.slideNext();
+      };
+    }
+  }
+  bindDepthEnded();
+  depthSwiper.on('slideChangeTransitionEnd', bindDepthEnded);
 
   // Baseline switcher
   var baselines = ['UniDepth', 'VDA'];

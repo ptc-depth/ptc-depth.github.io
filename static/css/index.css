@@ -297,29 +297,37 @@ body {
 
 .depth-stack-labels {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
   font-family: 'Google Sans', 'Noto Sans', sans-serif;
   font-size: 1.05rem;
   font-weight: 600;
   color: #666;
   margin-top: 8px;
 }
+.depth-label-left,
+.depth-label-right {
+  flex: 1;
+  text-align: center;
+}
 
 .depth-comparison-swiper {
-  padding-bottom: 40px;
+  padding-bottom: 0;
 }
 
-.depth-comparison-swiper .swiper-pagination {
-  position: relative;
-  bottom: auto;
-  margin-top: 12px;
+.depth-pagination {
+  position: static !important;
+  width: auto !important;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
 }
 
-.depth-comparison-swiper .swiper-pagination-bullet {
+.depth-pagination .swiper-pagination-bullet {
   background: #aaa;
 }
 
-.depth-comparison-swiper .swiper-pagination-bullet-active {
+.depth-pagination .swiper-pagination-bullet-active {
   background: #363636;
 }
 
@@ -359,8 +367,9 @@ body {
 }
 
 .depth-baseline-switcher {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 

@@ -415,11 +415,11 @@ Given consecutive monocular frames and a scalar displacement (from wheel odometr
     </div>
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
-    <div class="swiper-pagination"></div>
   </div>
   <div class="depth-stack-labels">
-    <span class="ptc-brand" style="font-weight: 700;">PTC-Depth</span>
-    <span class="depth-baseline-switcher">
+    <span class="depth-label-left"><span class="ptc-brand" style="font-weight: 700;">PTC-Depth</span></span>
+    <div class="swiper-pagination depth-pagination"></div>
+    <span class="depth-label-right depth-baseline-switcher">
       <span class="depth-arrow depth-arrow-left" onclick="switchBaseline(-1)">◀</span>
       <span class="depth-baseline-label">UniDepth</span>
       <span class="depth-arrow depth-arrow-right" onclick="switchBaseline(1)">▶</span>
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
     spaceBetween: 0,
     loop: false,
     allowTouchMove: false,
-    pagination: { el: '.depth-comparison-swiper .swiper-pagination', clickable: true },
+    pagination: { el: '.depth-pagination', clickable: true },
     on: {
       slideChangeTransitionEnd: function() {
         document.querySelectorAll('.depth-comparison-swiper .swiper-slide').forEach(function(slide) {

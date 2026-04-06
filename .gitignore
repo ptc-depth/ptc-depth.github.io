@@ -1,4 +1,6 @@
 _site
+.vscode
+.claude
 .DS_Store
 .jekyll
 .jekyll-metadata

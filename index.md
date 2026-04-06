@@ -106,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if (v.readyState >= 3) hideSpinner();
-    else v.addEventListener('canplay', hideSpinner, { once: true });
+    v.addEventListener('canplay', hideSpinner, { once: true });
+    v.addEventListener('playing', hideSpinner, { once: true });
   });
 
   var swiper = new Swiper('.compare3-swiper', {

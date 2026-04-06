@@ -83,6 +83,19 @@ code: https://github.com/ajou-arrl/ptc-depth
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Prefetch all videos in background
+  var videoUrls = [];
+  document.querySelectorAll('video[src]').forEach(function(v) { videoUrls.push(v.src); });
+  document.querySelectorAll('video[data-uni]').forEach(function(v) {
+    if (v.dataset.uni) videoUrls.push(v.dataset.uni);
+    if (v.dataset.vda) videoUrls.push(v.dataset.vda);
+  });
+  document.querySelectorAll('.compare3-toggle-input').forEach(function(t) {
+    if (t.dataset.lidar) videoUrls.push(t.dataset.lidar);
+  });
+  var unique = videoUrls.filter(function(v, i, a) { return a.indexOf(v) === i; });
+  unique.forEach(function(url) { fetch(url, { priority: 'low' }).catch(function(){}); });
+
   // Hide loading spinners when videos are ready
   document.querySelectorAll('video').forEach(function(v) {
     function hideSpinner() {

@@ -30,6 +30,11 @@ markdown: kramdown
 #   - vendor/ruby/
 exclude:
     - README.md
+    
+title: "PTC-Depth"
+description: "Pose-Refined Monocular Depth Estimation with Temporal Consistency"
+url: "https://ptc-depth.github.io"
+
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag

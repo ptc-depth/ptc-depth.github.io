@@ -30,3 +30,6 @@ markdown: kramdown
 #   - vendor/ruby/
 exclude:
     - README.md
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
